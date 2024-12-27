@@ -310,3 +310,102 @@ postgresql-libs
 
 
 ## Bitnami Scripts
+
+### Core Runtime Scripts
+
+1. **entrypoint.sh**
+- Primary container initialization script
+- Runs on container startup
+- Handles environment setup and validation
+- Manages service dependencies and startup order
+
+2. **run.sh**
+- Manages core application processes
+- Handles Puma and Sidekiq workers
+- Implements graceful shutdown logic
+- Controls process supervision
+
+3. **post-init.sh** 
+- Executes after initial setup
+- Handles database migrations
+- Sets up initial admin user
+- Manages plugin initialization
+
+### Support Scripts
+
+1. **libdiscourse.sh**
+- Core utility functions
+- Environment validation
+- Path and permission management
+- Database connection helpers
+
+2. **setup-discourse.sh**
+- Initial system configuration
+- Directory structure creation
+- Permission setup
+- Base configuration
+
+3. **install-plugins.sh**
+- Plugin installation
+- Git repository handling
+- Plugin dependencies
+- Asset compilation
+
+### Configuration Management
+
+1. **discourse-env**
+- Environment variable loading
+- Configuration parsing
+- Default values
+- Runtime overrides
+
+2. **discourse.conf**
+- Database settings
+- Redis configuration
+- Email/SMTP setup
+- Site customization
+- Plugin configuration
+
+### Process Management 
+
+1. **start-sidekiq**
+- Background job worker management
+- Queue processing
+- Memory monitoring
+- Process recovery
+
+2. **manage-puma**
+- Web server control
+- Worker scaling
+- Request handling
+- Load balancing
+
+### Data Management
+
+1. **setup-volumes.sh**
+- Volume initialization
+- Permission configuration
+- Data directory setup
+- Backup management
+
+2. **backup-discourse.sh**
+- Backup coordination
+- Data consistency
+- Volume snapshot handling
+- Upload to external storage
+
+### Health Monitoring
+
+1. **healthcheck.sh**
+- Application status checks
+- Database connectivity
+- Redis availability  
+- Process monitoring
+
+2. **discourse-doctor**
+- System diagnostics
+- Dependency validation
+- Configuration verification
+- Log analysis
+
+This script architecture provides comprehensive process management, data handling, and monitoring capabilities while maintaining proper separation of concerns and modularity.
