@@ -1,7 +1,7 @@
 
-From: Daniel Bodnar <daniel.bodnar@fmr.com>
-Date: Tue, 17 Dec 2024 01:40:00 -0600
-Subject: [PATCH 0001/0007] Add patch management system
+From: Daniel Bodnar <daniel.bodnar@example.com>
+Date: Mon, 1 Jan 2024 10:00:00 -0500
+Subject: [PATCH] Add patch management system
 
 diff --git a/tools/patch-manager.sh b/tools/patch-manager.sh
 new file mode 100755
@@ -63,37 +63,37 @@ index 0000000..1234567
 +        error "Patch validation failed: ${patch_file}"
 +    fi
 +}
-+
-+apply_all_patches() {
-+    local patches=("${PATCH_DIR}"/*.patch)
-+    if [ ${#patches[@]} -eq 0 ]; then
-+        warn "No patches found in ${PATCH_DIR}"
-+        return 0
-+    fi
-+    
-+    for patch in "${patches[@]}"; do
-+        apply_patch "$(basename "${patch}")"
-+    done
-+}
-+
-+show_status() {
-+    log "Patch Status:"
-+    echo "----------------------------------------"
-+    for patch in "${PATCH_DIR}"/*.patch; do
-+        local patch_name="$(basename "${patch}")"
-+        if is_patch_applied "${patch_name}"; then
-+            echo -e "${GREEN}[✓]${NC} ${patch_name}"
-+        else
-+            echo -e "${RED}[✗]${NC} ${patch_name}"
-+        fi
-+    done
-+    echo "----------------------------------------"
-+}
-+
-+case "${1:-}" in
-+    "init") init_patch_system ;;
-+    "apply") shift; apply_patch "$1" ;;
-+    "apply-all") apply_all_patches ;;
-+    "status") show_status ;;
-+    *) echo "Usage: $0 {init|apply <patch>|apply-all|status}" ;;
-+esac
+
+apply_all_patches() {
+    local patches=("${PATCH_DIR}"/*.patch)
+    if [ ${#patches[@]} -eq 0 ]; then
+        warn "No patches found in ${PATCH_DIR}"
+        return 0
+    fi
+    
+    for patch in "${patches[@]}"; do
+        apply_patch "$(basename "${patch}")"
+    done
+}
+
+show_status() {
+    log "Patch Status:"
+    echo "----------------------------------------"
+    for patch in "${PATCH_DIR}"/*.patch; do
+        local patch_name="$(basename "${patch}")"
+        if is_patch_applied "${patch_name}"; then
+            echo -e "${GREEN}[✓]${NC} ${patch_name}"
+        else
+            echo -e "${RED}[✗]${NC} ${patch_name}"
+        fi
+    done
+    echo "----------------------------------------"
+}
+
+case "${1:-}" in
+    "init") init_patch_system ;;
+    "apply") shift; apply_patch "$1" ;;
+    "apply-all") apply_all_patches ;;
+    "status") show_status ;;
+    *) echo "Usage: $0 {init|apply <patch>|apply-all|status}" ;;
+esac
