@@ -1,0 +1,35 @@
+# tools/lib/scripts/run.sh.template
+#!/bin/bash
+# Generated runtime script
+# Created: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+set -euo pipefail
+
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)"
+source "\$SCRIPT_DIR/lib/common.sh"
+
+# Load environment
+load_env "\$SCRIPT_DIR/scripts/001-environment.sh"
+
+# Setup volumes
+if [ -f "\$SCRIPT_DIR/scripts/002-volumes.sh" ]; then
+    source "\$SCRIPT_DIR/scripts/002-volumes.sh"
+fi
+
+# Setup ports (informational only)
+if [ -f "\$SCRIPT_DIR/scripts/003-ports.sh" ]; then
+    source "\$SCRIPT_DIR/scripts/003-ports.sh"
+fi
+
+# Load entrypoint configuration
+if [ -f "\$SCRIPT_DIR/scripts/004-entrypoint.sh" ]; then
+    source "\$SCRIPT_DIR/scripts/004-entrypoint.sh"
+fi
+
+# Execute command
+if [ \${#ENTRYPOINT_ARGS[@]} -gt 0 ]; then
+    exec "\${ENTRYPOINT_ARGS[@]}" "\$@"
+elif [ \${#CMD_ARGS[@]} -gt 0 ]; then
+    exec "\${CMD_ARGS[@]}" "\$@"
+else
+    error "No command specified"
+fi

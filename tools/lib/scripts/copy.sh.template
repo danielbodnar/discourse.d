@@ -1,0 +1,28 @@
+# tools/lib/scripts/copy.sh.template
+#!/bin/bash
+# Generated from COPY command
+# Created: ${CREATED}
+# Original: ${COMMAND}
+set -euo pipefail
+
+# Source common functions
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")/../.." && pwd)"
+source "\${SCRIPT_DIR}/lib/common.sh"
+
+# Copy configuration
+${src}
+${dest}
+${stage:+"# From stage: $stage"}
+
+# Create destination directory
+mkdir -p "\$(dirname "\$dest")"
+
+# Copy files
+if [ -d "\$src" ]; then
+    cp -r "\$src"/* "\$dest/"
+else
+    cp "\$src" "\$dest"
+fi
+
+# Set permissions
+chmod -R u+rw,g+r,o+r "\$dest"

@@ -1,0 +1,38 @@
+# tools/lib/scripts/test.sh.template
+#!/bin/bash
+# Test script for generated files
+set -euo pipefail
+
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)"
+source "\$SCRIPT_DIR/lib/common.sh"
+
+# Test environment setup
+test_environment() {
+    log "Testing environment setup..."
+    source "\$SCRIPT_DIR/scripts/001-environment.sh"
+    # Add environment validation tests here
+}
+
+# Test volume setup
+test_volumes() {
+    log "Testing volume setup..."
+    source "\$SCRIPT_DIR/scripts/002-volumes.sh"
+    # Add volume validation tests here
+}
+
+# Test entrypoint
+test_entrypoint() {
+    log "Testing entrypoint configuration..."
+    source "\$SCRIPT_DIR/scripts/004-entrypoint.sh"
+    # Add entrypoint validation tests here
+}
+
+# Run all tests
+main() {
+    test_environment
+    test_volumes
+    test_entrypoint
+    log "All tests passed successfully"
+}
+
+main "$@"

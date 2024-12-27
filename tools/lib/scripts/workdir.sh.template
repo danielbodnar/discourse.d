@@ -1,0 +1,14 @@
+# tools/lib/scripts/workdir.sh.template
+#!/bin/bash
+# Generated from WORKDIR command
+# Created: ${CREATED}
+# Original: ${COMMAND}
+set -euo pipefail
+
+# Source common functions
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")/../.." && pwd)"
+source "\${SCRIPT_DIR}/lib/common.sh"
+
+# Create and change to directory
+mkdir -p ${WORKDIR}
+cd ${WORKDIR}

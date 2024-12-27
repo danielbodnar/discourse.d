@@ -1,0 +1,48 @@
+# tools/lib/scripts/common.sh.template
+#!/bin/bash
+# Common functions for generated scripts
+set -euo pipefail
+
+# Logging functions
+log() {
+    echo "[$(date -u '+%Y-%m-%d %H:%M:%S UTC')] $*" >&2
+}
+
+error() {
+    log "ERROR: $*"
+    exit 1
+}
+
+# Directory management
+ensure_dir() {
+    local dir="$1"
+    mkdir -p "$dir"
+}
+
+# Permission management
+fix_permissions() {
+    local path="$1"
+    local mode="${2:-755}"
+    chmod -R "$mode" "$path"
+}
+
+# Environment management
+load_env() {
+    local env_file="$1"
+    if [ -f "$env_file" ]; then
+        # shellcheck source=/dev/null
+        source "$env_file"
+    fi
+}
+
+# Cleanup function
+cleanup() {
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        log "Script failed with exit code: $exit_code"
+    fi
+    exit $exit_code
+}
+
+# Set cleanup trap
+trap cleanup EXIT
