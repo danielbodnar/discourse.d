@@ -6,11 +6,14 @@
 ### Core Components
 - [ ] Complete Alpine rootfs configuration
 - [ ] Ruby/rbenv setup script (`lib/setup-ruby.sh`)
-- [ ] Node.js/Yarn setup script (`lib/setup-node.sh`)
+- [ ] Node.js/Yarn setup script (`lib/setup-node.sh`) 
 - [ ] Plugin management system (`lib/install-plugins.sh`)
 - [ ] Backup management implementation (`lib/backup-manager.sh`)
 - [ ] Health check implementation (`lib/discourse/health-check`)
 - [ ] Nginx configuration templates
+- [ ] Log rotation and management
+- [ ] Monitoring integration
+- [ ] Migration tools (for moving from Bitnami)
 
 ### Configuration
 - [ ] Complete configuration schema in TypeScript
@@ -19,12 +22,17 @@
 - [ ] S3 backup configuration
 - [ ] Redis configuration
 - [ ] PostgreSQL configuration
+- [ ] Distribution-specific configurations (alpine, arch, ubuntu, debian)
+- [ ] mkosi configuration implementation
 
 ### Build System
 - [ ] Finalize multi-stage build script
 - [ ] Add layer caching optimization
 - [ ] Implement build artifact management
 - [ ] Add build validation tests
+- [ ] Build procedures and layered root filesystem
+- [ ] Development environment setup
+- [ ] CI/CD integration
 
 ### Scripts
 - [ ] Complete discourse-init script
@@ -93,3 +101,6 @@ rootfs/
 - Maintain minimal footprint
 - Ensure proper security practices
 - Keep configuration flexible
+- Test all features in isolation
+- Maintain comprehensive documentation
+- Ensure smooth migration path from Bitnami
