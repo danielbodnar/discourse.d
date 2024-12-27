@@ -1,3 +1,4 @@
+
 From: Daniel Bodnar <daniel.bodnar@fmr.com>
 Date: Tue, 17 Dec 2024 01:42:00 -0600
 Subject: [PATCH 0003/0008] Add Discourse paths and volume management
@@ -27,7 +28,7 @@ diff --git a/lib/00-config.sh b/lib/00-config.sh
     "configs:/var/discourse/config"
 )
 
-# Persistent directories that need specific permissions
++# Persistent directories that need specific permissions
 +DISCOURSE_PERSISTENT_DIRS=(
     "${DISCOURSE_DATA}/shared"
     "${DISCOURSE_DATA}/uploads"
