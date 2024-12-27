@@ -104,3 +104,38 @@ You are an AI assistant tasked with creating a comprehensive technical design do
    d. Include any separate schema files or bash script files within their own tagged sections (e.g., <schema_file filename="config_schema.ts">) after the main document.
 
 Remember to focus on creating a comprehensive and detailed technical design document that addresses all aspects of the user's instructions and provides a clear roadmap for implementation.
+
+## CLI Usage Example
+
+To use this prompt in a Replit environment:
+
+```bash
+# Create a new sources file
+echo '<SOURCES>
+https://github.com/my-org/my-repo
+</SOURCES>' > sources.txt
+
+# Create a template file
+echo '<TECHNICAL_DESIGN_TEMPLATE>
+# {{title}}
+
+## Overview
+{{description}}
+
+## Implementation
+{{steps}}
+</TECHNICAL_DESIGN_TEMPLATE>' > template.txt
+
+# Create instructions file
+echo '<USER_INSTRUCTIONS>
+Please analyze the repository and create a technical design document for implementing a new logging system.
+</USER_INSTRUCTIONS>' > instructions.txt
+
+# Run the technical design generator
+replit-agent generate \
+  --prompt docs/agents/technical-design-agent/prompt.md \
+  --sources sources.txt \
+  --template template.txt \
+  --instructions instructions.txt \
+  --output technical-design.md
+```
