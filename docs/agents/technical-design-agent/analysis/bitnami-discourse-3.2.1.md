@@ -311,9 +311,61 @@ postgresql-libs
 
 ## Bitnami Scripts
 
-### Core Runtime Scripts
+### [/opt/bitnami/scripts/discourse/entrypoint.sh](https://github.com/bitnami/containers/blob/5d1bdf20b037719b0ccdcafdc9c7e152d7594d8e/bitnami/discourse/3/debian-12/rootfs/opt/bitnami/scripts/discourse/entrypoint.sh)
+```bash
+#!/bin/bash
+# Main entry point for the Discourse container
+# Initializes the system and starts required services
+```
 
-1. **entrypoint.sh**
+### [/opt/bitnami/scripts/discourse-env.sh](https://github.com/bitnami/containers/blob/5d1bdf20b037719b0ccdcafdc9c7e152d7594d8e/bitnami/discourse/3/debian-12/rootfs/opt/bitnami/scripts/discourse-env.sh)
+```bash
+#!/bin/bash
+# Sets up the environment variables for Discourse operation
+# Handles configuration of all runtime parameters
+```
+
+### [/opt/bitnami/scripts/discourse/run.sh](https://github.com/bitnami/containers/blob/5d1bdf20b037719b0ccdcafdc9c7e152d7594d8e/bitnami/discourse/3/debian-12/rootfs/opt/bitnami/scripts/discourse/run.sh)
+```bash
+#!/bin/bash
+# Manages the Discourse application runtime
+# Controls Puma and Sidekiq processes
+```
+
+### [/opt/bitnami/scripts/libdiscourse.sh](https://github.com/bitnami/containers/blob/5d1bdf20b037719b0ccdcafdc9c7e152d7594d8e/bitnami/discourse/3/debian-12/rootfs/opt/bitnami/scripts/libdiscourse.sh)
+```bash
+#!/bin/bash
+# Core library of Discourse utility functions
+# Provides common functionality used by other scripts
+```
+
+### [/opt/bitnami/scripts/discourse/setup.sh](https://github.com/bitnami/containers/blob/5d1bdf20b037719b0ccdcafdc9c7e152d7594d8e/bitnami/discourse/3/debian-12/rootfs/opt/bitnami/scripts/discourse/setup.sh)
+```bash
+#!/bin/bash
+# Performs initial Discourse setup
+# Configures directories, permissions, and initial state
+```
+
+### [/opt/bitnami/scripts/discourse/postunpack.sh](https://github.com/bitnami/containers/blob/5d1bdf20b037719b0ccdcafdc9c7e152d7594d8e/bitnami/discourse/3/debian-12/rootfs/opt/bitnami/scripts/discourse/postunpack.sh)
+```bash
+#!/bin/bash
+# Post-installation setup script
+# Runs after initial installation to finalize configuration
+```
+
+### [/opt/bitnami/scripts/postgresql-env.sh](https://github.com/bitnami/containers/blob/5d1bdf20b037719b0ccdcafdc9c7e152d7594d8e/bitnami/discourse/3/debian-12/rootfs/opt/bitnami/scripts/postgresql-env.sh)
+```bash
+#!/bin/bash
+# PostgreSQL environment configuration
+# Sets up database connection parameters
+```
+
+### [/opt/bitnami/scripts/redis-env.sh](https://github.com/bitnami/containers/blob/5d1bdf20b037719b0ccdcafdc9c7e152d7594d8e/bitnami/discourse/3/debian-12/rootfs/opt/bitnami/scripts/redis-env.sh)
+```bash
+#!/bin/bash
+# Redis environment configuration
+# Sets up Redis connection parameters
+```
 - Primary container initialization script
 - Runs on container startup
 - Handles environment setup and validation
