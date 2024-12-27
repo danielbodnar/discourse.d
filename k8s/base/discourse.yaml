@@ -1,0 +1,92 @@
+# k8s/base/discourse.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discourse
+  namespace: discourse
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: discourse
+  template:
+    metadata:
+      labels:
+        app: discourse
+    spec:
+      containers:
+        - name: discourse
+          image: discourse/base:3.2.1
+          ports:
+            - containerPort: 3000
+          env:
+            - name: RAILS_ENV
+              value: production
+            - name: DISCOURSE_DB_HOST
+              value: discourse-postgresql
+            - name: DISCOURSE_DB_PORT
+              value: "5432"
+            - name: DISCOURSE_DB_NAME
+              value: discourse
+            - name: DISCOURSE_DB_USERNAME
+              value: discourse
+            - name: DISCOURSE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: discourse-secrets
+                  key: postgresql-password
+            - name: DISCOURSE_REDIS_HOST
+              value: discourse-redis
+            - name: DISCOURSE_REDIS_PORT
+              value: "6379"
+            - name: DISCOURSE_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: discourse-secrets
+                  key: redis-password
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: discourse-secrets
+                  key: aws-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: discourse-secrets
+                  key: aws-secret-key
+            - name: DISCOURSE_SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: discourse-secrets
+                  key: smtp-password
+          volumeMounts:
+            - name: uploads
+              mountPath: /opt/discourse/public/uploads
+            - name: backups
+              mountPath: /opt/discourse/public/backups
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: discourse-uploads
+        - name: backups
+          persistentVolumeClaim:
+            claimName: discourse-backups

@@ -1,0 +1,7 @@
+# data/docker/allowed_images.yaml
+allowed_images:
+  - "alpine:3.19"
+  - "debian:bookworm-slim"
+  - "ubuntu:22.04"
+  - "node:18-alpine"
+  - "ruby:3.2-alpine"

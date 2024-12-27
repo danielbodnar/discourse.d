@@ -1,0 +1,20 @@
+# tests/compliance/test.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: restricted-access
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              compliance: verified
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              compliance: verified

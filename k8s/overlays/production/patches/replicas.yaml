@@ -1,0 +1,7 @@
+# k8s/overlays/production/patches/replicas.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discourse
+spec:
+  replicas: 3

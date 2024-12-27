@@ -1,0 +1,28 @@
+# k8s/base/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - postgresql.yaml
+  - redis.yaml
+  - discourse.yaml
+  - ingress.yaml
+  - services.yaml
+  - volumes.yaml
+  - secrets.yaml
+
+configMapGenerator:
+  - name: discourse-config
+    literals:
+      - RAILS_ENV=production
+      - DISCOURSE_HOSTNAME=discourse.example.com
+
+secretGenerator:
+  - name: discourse-secrets
+    literals:
+      - postgresql-password=discourse
+      - redis-password=discourse
+      - aws-access-key=
+      - aws-secret-key=
+      - smtp-password=

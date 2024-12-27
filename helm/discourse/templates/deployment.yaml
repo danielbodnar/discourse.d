@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "discourse.fullname" . }}
+  labels:
+    {{- include "discourse.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "discourse.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "discourse.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: RAILS_ENV
+              value: production
+            - name: DISCOURSE_DB_HOST
+              value: {{ include "discourse.postgresql.host" . }}
+            - name: DISCOURSE_DB_PORT
+              value: "5432"
+            - name: DISCOURSE_DB_NAME
+              value: {{ .Values.postgresql.auth.database }}
+            - name: DISCOURSE_DB_USERNAME
+              value: {{ .Values.postgresql.auth.username }}
+            - name: DISCOURSE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "discourse.postgresql.secretName" . }}
+                  key: password
+            - name: DISCOURSE_REDIS_HOST
+              value: {{ include "discourse.redis.host" . }}
+            - name: DISCOURSE_REDIS_PORT
+              value: "6379"
+            {{- if .Values.redis.auth.enabled }}
+            - name: DISCOURSE_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "discourse.redis.secretName" . }}
+                  key: redis-password
+            {{- end }}
+            {{- if .Values.s3.enabled }}
+            - name: S3_BUCKET
+              value: {{ .Values.s3.bucket }}
+            - name: S3_REGION
+              value: {{ .Values.s3.region }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "discourse.s3.secretName" . }}
+                  key: access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "discourse.s3.secretName" . }}
+                  key: secret-key
+            {{- if .Values.s3.endpoint }}
+            - name: S3_ENDPOINT
+              value: {{ .Values.s3.endpoint }}
+            {{- end }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: uploads
+              mountPath: /opt/discourse/public/uploads
+            - name: backups
+              mountPath: /opt/discourse/public/backups
+      volumes:
+        - name: uploads
+          {{- if .Values.persistence.uploads.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "discourse.fullname" . }}-uploads
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: backups
+          {{- if .Values.persistence.backups.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "discourse.fullname" . }}-backups
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

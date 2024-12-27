@@ -1,0 +1,13 @@
+{
+  "nix.enableLanguageServer": true,
+  "ruby.useBundler": true,
+  "ruby.useLanguageServer": true,
+  "ruby.lint": {
+    "rubocop": true
+  },
+  "ruby.format": "rubocop",
+  "editor.formatOnSave": true,
+  "files.associations": {
+    "*.nix": "nix"
+  }
+}

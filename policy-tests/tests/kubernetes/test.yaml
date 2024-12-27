@@ -1,0 +1,25 @@
+# tests/kubernetes/test.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discourse
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: discourse
+          resources:
+            limits:
+              cpu: "2000m"
+              memory: "4Gi"
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 3000
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 3000
+          imagePullPolicy: Always

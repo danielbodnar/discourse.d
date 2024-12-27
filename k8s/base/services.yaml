@@ -1,0 +1,37 @@
+# k8s/base/services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: discourse
+  namespace: discourse
+spec:
+  selector:
+    app: discourse
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discourse-postgresql
+  namespace: discourse
+spec:
+  selector:
+    app: discourse-postgresql
+  ports:
+    - port: 5432
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discourse-redis
+  namespace: discourse
+spec:
+  selector:
+    app: discourse-redis
+  ports:
+    - port: 6379
+  clusterIP: None

@@ -1,0 +1,23 @@
+# k8s/overlays/production/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base
+
+patches:
+  - path: patches/resources.yaml
+  - path: patches/replicas.yaml
+
+configMapGenerator:
+  - name: discourse-config
+    behavior: merge
+    literals:
+      - DISCOURSE_HOSTNAME=discourse.production.example.com
+
+secretGenerator:
+  - name: discourse-secrets
+    behavior: merge
+    files:
+      - secrets/aws-credentials.env
+      - secrets/smtp-credentials.env

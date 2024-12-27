@@ -1,0 +1,74 @@
+image:
+  repository: discourse/base
+  tag: 3.2.1
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+
+persistence:
+  uploads:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  backups:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+
+s3:
+  enabled: false
+  bucket: ""
+  region: ""
+  accessKey: ""
+  secretKey: ""
+  endpoint: ""
+
+smtp:
+  enabled: true
+  host: ""
+  port: 587
+  username: ""
+  password: ""
+  enableStartTLS: true
+
+postgresql:
+  enabled: true
+  auth:
+    username: discourse
+    password: discourse
+    database: discourse
+  primary:
+    persistence:
+      size: 10Gi
+
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: discourse
+  master:
+    persistence:
+      size: 5Gi
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: discourse.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: discourse-tls
+      hosts:
+        - discourse.example.com

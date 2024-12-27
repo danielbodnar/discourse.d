@@ -1,0 +1,13 @@
+# tests/docker/test.yaml
+kind: Dockerfile
+from: alpine:3.19
+labels:
+  maintainer: "team@example.com"
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:3000/-/healthy"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+user: discourse
+expose:
+  - "3000"

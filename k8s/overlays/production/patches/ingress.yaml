@@ -1,0 +1,8 @@
+# k8s/overlays/production/patches/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: discourse
+spec:
+  rules:
+    - host: discourse.production.example.com

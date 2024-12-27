@@ -1,0 +1,61 @@
+# k8s/base/postgresql.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: discourse-postgresql
+  namespace: discourse
+spec:
+  serviceName: discourse-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discourse-postgresql
+  template:
+    metadata:
+      labels:
+        app: discourse-postgresql
+    spec:
+      containers:
+        - name: postgresql
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: discourse
+            - name: POSTGRES_USER
+              value: discourse
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: discourse-secrets
+                  key: postgresql-password
+          volumeMounts:
+            - name: postgresql-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "discourse"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "discourse"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: postgresql-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 10Gi
