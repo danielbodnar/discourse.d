@@ -1,4 +1,3 @@
-
 [Unit]
 Description=Discourse Discussion Platform
 After=network.target postgresql.service redis.service
