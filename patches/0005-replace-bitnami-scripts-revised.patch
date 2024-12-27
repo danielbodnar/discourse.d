@@ -1,18 +1,25 @@
 
 From: Daniel Bodnar <daniel.bodnar@fmr.com>
-Date: Tue, 17 Dec 2024 01:44:00 -0600
-Subject: [PATCH 0005/0008] Replace Bitnami scripts with native implementations
+Date: Tue, 17 Dec 2024 01:44:30 -0600
+Subject: [PATCH 0005/0008] Replace Bitnami scripts with native implementations (revised)
 Description: Replaces Bitnami-specific scripts and configurations with native
-Discourse implementations and adds comprehensive configuration management.
+Discourse implementations using SystemD conventions for configuration management.
 
 diff --git a/lib/discourse-init.sh b/lib/discourse-init.sh
 --- a/lib/discourse-init.sh
 +++ b/lib/discourse-init.sh
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,50 @@
 +#!/usr/bin/env bash
 +
-+# Load environment configuration
-+source /etc/discourse/discourse.env
++# Load base configuration
++source /etc/discourse/discourse.conf
++
++# Load all configuration overrides in order
++if [ -d /etc/discourse/discourse.conf.d ]; then
++    for conf in /etc/discourse/discourse.conf.d/*.conf; do
++        [ -f "$conf" ] && source "$conf"
++    done
++fi
 +
 +# Initialize directories
 +for dir in "${DISCOURSE_PERSISTENT_DIRS[@]}"; do
@@ -44,8 +51,11 @@ diff --git a/lib/discourse-init.sh b/lib/discourse-init.sh
 +  <<: *defaults
 +EOF
 +
-+# Set up assets
-+RAILS_ENV=production bundle exec rake assets:precompile
-+
-+# Run migrations
-+RAILS_ENV=production bundle exec rake db:migrate
++# Configure backup settings
++cat > "$DISCOURSE_ROOT/config/backups.yml" << EOF
++production:
++  backup_provider: ${BACKUP_PROVIDER:-local}
++  s3_backup_bucket: ${S3_BACKUP_BUCKET:-}
++  s3_backup_region: ${S3_REGION:-us-east-1}
++  s3_backup_path: ${S3_PATH:-backups}
++EOF
