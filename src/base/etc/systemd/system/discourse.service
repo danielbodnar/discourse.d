@@ -1,0 +1,35 @@
+
+[Unit]
+Description=Discourse Discussion Platform
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=notify
+User=discourse
+Group=discourse
+ExecStart=/usr/bin/discourse-server
+Restart=always
+RestartSec=5
+TimeoutStartSec=0
+
+# Security
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ReadOnlyPaths=/
+ReadWritePaths=/var/discourse
+ReadWritePaths=/var/log/discourse
+
+# Resource limits
+MemoryHigh=2G
+MemoryMax=3G
+TasksMax=4096
+CPUWeight=100
+
+[Install]
+WantedBy=multi-user.target
