@@ -1,0 +1,119 @@
+From: Daniel Bodnar <daniel.bodnar@fmr.com>
+Date: Tue, 17 Dec 2024 01:45:00 -0600
+Subject: [PATCH 0006/0008] Add mkosi base configuration
+Description: Implements base OS layer configuration with proper package
+management across different distributions.
+
+diff --git a/mkosi.defaults.conf b/mkosi.defaults.conf
+new file mode 100644
+index 0000000..1234567
+--- /dev/null
++++ b/mkosi.defaults.conf
+@@ -0,0 +1,89 @@
++[Distribution]
++Distribution=@DISTRIBUTION@
++Release=@RELEASE@
++
++[Output]
++Format=gpt_ext4
++Bootable=no
++OutputDirectory=output
++WorkspaceDirectory=work
++BuildDirectory=build
++
++[Content]
++MakeInitrd=no
++RemoveFiles=/var/cache/apt /var/lib/apt/lists
++Environment=
++    LANG=C.UTF-8
++    LC_ALL=C.UTF-8
++
++[Validation]
++CheckSum=yes
++Sign=no
++
++[Host]
++QemuHeadless=yes
++
++# Distribution-specific includes
++Include=mkosi.@DISTRIBUTION@.conf
++
++diff --git a/mkosi.alpine.conf b/mkosi.alpine.conf
+new file mode 100644
+index 0000000..2345678
+--- /dev/null
++++ b/mkosi.alpine.conf
+@@ -0,0 +1,35 @@
++[Distribution]
++Release=edge
++
++[Content]
++Packages=
++    alpine-base
++    imagemagick-dev
++    build-base
++    git
++    nginx
++    postgresql
++    postgresql-dev
++    redis
++    yaml-dev
++    zlib-dev
++    libxml2-dev
++    libxslt-dev
++    readline-dev
++    openssl-dev
++    bash
++    sudo
++
++BuildPackages=
++    build-base
++    pkgconf
++
++diff --git a/mkosi.debian.conf b/mkosi.debian.conf
+new file mode 100644
+index 0000000..3456789
+--- /dev/null
++++ b/mkosi.debian.conf
+@@ -0,0 +1,19 @@
++[Distribution]
++Release=bookworm
++
++[Content]
++Packages=
++    systemd
++    nginx
++    postgresql
++    redis
++    imagemagick
++    build-essential
++    git
++    sudo
++
++BuildPackages=
++    build-essential
++    pkg-config
++
++diff --git a/mkosi.ubuntu.conf b/mkosi.ubuntu.conf
+new file mode 100644
+index 0000000,4567890
+--- /dev/null
++++ b/mkosi.ubuntu.conf
+@@ -0,0 +1,19 @@
++[Distribution]
++Release=jammy
++
++[Content]
++Packages=
++    systemd
++    nginx
++    postgresql
++    redis
++    imagemagick
++    build-essential
++    git
++    sudo
++
++BuildPackages=
++    build-essential
++    pkg-config

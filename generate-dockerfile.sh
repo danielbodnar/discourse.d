@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -49,13 +48,32 @@ ENV DISCOURSE_VERSION=${DISCOURSE_VERSION:-3.2.1} \\
     RUBY_VERSION=${RUBY_VERSION:-3.2.2} \\
     NODE_VERSION=${NODE_VERSION:-18.18.0} \\
     YARN_VERSION=${YARN_VERSION:-1.22.19} \\
-    BUNDLER_VERSION=${BUNDLER_VERSION:-2.4.22} \\
-    DISCOURSE_USER=${DISCOURSE_USER:-discourse} \\
+    BUNDLER_VERSION=${BUNDLER_VERSION:-2.4.22}
+
+
+ENV DISCOURSE_USER=${DISCOURSE_USER:-discourse} \\
     DISCOURSE_GROUP=${DISCOURSE_GROUP:-discourse} \\
     DISCOURSE_HOME=${DISCOURSE_HOME:-/home/discourse} \\
     DISCOURSE_ROOT=${DISCOURSE_ROOT:-/var/www/discourse} \\
-    DISCOURSE_DATA=${DISCOURSE_DATA:-/var/discourse} \\
-    RAILS_ENV=production
+    DISCOURSE_DATA=${DISCOURSE_DATA:-/var/discourse}
+
+ENV RAILS_ENV=${RAILS_ENV:-production} \\
+    RUBY_MALLOC_ARENA_MAX=2 \\
+    RUBY_GC_HEAP_GROWTH_MAX_SLOTS=40000 \\
+    RUBY_GC_HEAP_INIT_SLOTS=400000 \\
+    RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR=1.5 \\
+    RUBY_GC_MALLOC_LIMIT=90000000 \\
+    RUBY_GC_OLDMALLOC_LIMIT=90000000 \\
+    RUBY_GC_MALLOC_LIMIT_MAX=200000000 \\
+    RUBY_GC_OLDMALLOC_LIMIT_MAX=200000000 \\
+    RUBY_GC_MALLOC_LIMIT_GROWTH_FACTOR=1.1 \\
+    RUBY_GC_OLDMALLOC_LIMIT_GROWTH_FACTOR=1.1 \\
+    RUBY_GC_HEAP_FREE_SLOTS_MIN_RATIO=0.05 \\
+    RUBY_GC_HEAP_FREE_SLOTS_MAX_RATIO=0.65
+
+
+ENV PATH=/usr/local/rbenv/shims:/usr/local/rbenv/bin:$PATH
+
 
 # Step 0003 - system packages
 RUN ${PKG_INSTALL_CMD} \\
@@ -80,10 +98,12 @@ RUN groupadd -r \${DISCOURSE_GROUP} && \\
         \${DISCOURSE_DATA}
 
 # Step 0005 - ruby setup
+# TODO: implementation of setup-ruby script
 COPY rootfs/base/usr/lib/setup-ruby /usr/lib/setup-ruby
 RUN /usr/lib/setup-ruby
 
 # Step 0006 - node.js setup
+# TODO: implementation of setup-node script
 COPY rootfs/base/usr/lib/setup-node /usr/lib/setup-node
 RUN /usr/lib/setup-node
 
@@ -96,6 +116,7 @@ RUN bundle install --deployment --without development test && \\
     yarn install --production
 
 # Step 0009 - discourse plugins
+# TODO: implementation of install-plugins script
 COPY rootfs/base/usr/lib/install-plugins /usr/lib/install-plugins
 RUN /usr/lib/install-plugins
 
@@ -103,13 +124,16 @@ RUN /usr/lib/install-plugins
 RUN RAILS_ENV=production bundle exec rake assets:precompile
 
 # Step 0011 - nginx configuration
+# TODO: implementation of nginx configuration
 COPY rootfs/base/etc/nginx/conf.d/discourse.conf /etc/nginx/conf.d/discourse.conf
 
 # Step 0012 - discourse configuration
+# TODO: implementation of discourse configuration
 COPY rootfs/base/etc/discourse/discourse.conf /etc/discourse/discourse.conf
 COPY rootfs/base/etc/discourse/discourse.conf.d /etc/discourse/discourse.conf.d/
 
 # Step 0013 - initialization scripts
+# TODO: implementation of initialization scripts
 COPY rootfs/base/usr/lib/discourse/discourse-init /usr/lib/discourse/discourse-init
 COPY rootfs/base/usr/lib/discourse/discourse-env /usr/lib/discourse/discourse-env
 RUN chmod +x /usr/lib/discourse/discourse-*
@@ -125,10 +149,12 @@ RUN mkdir -p \\
     chown -R \${DISCOURSE_USER}:\${DISCOURSE_GROUP} \${DISCOURSE_DATA}
 
 # Step 0015 - backup management
+# TODO: implementation of backup manager
 COPY rootfs/base/usr/lib/discourse/backup-manager /usr/lib/discourse/backup-manager
 RUN chmod +x /usr/lib/discourse/backup-manager
 
 # Step 0016 - health check
+# TODO: implementation of health check script
 COPY rootfs/base/usr/lib/discourse/health-check /usr/lib/discourse/health-check
 RUN chmod +x /usr/lib/discourse/health-check
 
@@ -167,7 +193,7 @@ VOLUME [\
 
 # Environment setup
 ENV RAILS_ENV=production \\
-    DISCOURSE_HOSTNAME=0.0.0.0
+    DISCOURSE_HOSTNAME=localhost
 
 # Ports
 EXPOSE 3000
@@ -194,7 +220,7 @@ main() {
     if [ -z "$variant" ]; then
         error "Usage: $0 <variant>"
     fi
-    
+
     log "Generating Dockerfile for variant: $variant"
     DOCKERFILE_TEMPLATE "$variant" > "Dockerfile.${variant}"
     success "Generated Dockerfile.${variant}"

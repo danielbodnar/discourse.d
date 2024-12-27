@@ -146,6 +146,16 @@ diff --git a/lib/02-structure.sh b/lib/02-structure.sh
 
      success "Directory structure created"
  }
+@@ -46,6 +74,9 @@ create_gitignore() {
+ # System files
+ .DS_Store
+ *.swp
+ *~
++
++# Volume data
++/volumes/
+ EOF
+ }
 
 diff --git a/convert.sh b/convert.sh
 --- a/convert.sh
@@ -157,6 +167,6 @@ diff --git a/convert.sh b/convert.sh
 +    setup_volume_links
 +    generate_volume_systemd_mount_units
 +    generate_volume_tmpfiles
+     create_gitignore
 
      success "Initial setup completed successfully!"
- }

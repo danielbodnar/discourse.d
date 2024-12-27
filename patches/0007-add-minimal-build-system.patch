@@ -1,0 +1,174 @@
+From: Daniel Bodnar <daniel.bodnar@fmr.com>
+Date: Tue, 17 Dec 2024 01:46:00 -0600
+Subject: [PATCH 0007/0008] Add minimal build system
+Description: Adds minimal build system and test scripts to get to a testable state
+
+diff --git a/build.sh b/build.sh
+new file mode 100755
+index 0000000..1234567
+--- /dev/null
++++ b/build.sh
+@@ -0,0 +1,71 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++BUILD_DIR="${SCRIPT_DIR}/build"
++OUTPUT_DIR="${SCRIPT_DIR}/output"
++
++# Source our configuration
++source "${SCRIPT_DIR}/lib/00-config.sh"
++source "${SCRIPT_DIR}/lib/01-utils.sh"
++
++build_rootfs() {
++    local dist="$1"
++    log "Building rootfs for ${dist}..."
++    
++    # Generate distribution-specific mkosi config
++    sed "s/@DISTRIBUTION@/${dist}/" mkosi.defaults.conf > "mkosi.${dist}.build.conf"
++    
++    # Build the base image
++    mkosi -f "mkosi.${dist}.build.conf" build
++    
++    success "Built rootfs for ${dist}"
++}
++
++build_all() {
++    mkdir -p "${BUILD_DIR}" "${OUTPUT_DIR}"
++    
++    for dist in "${DISTRIBUTIONS[@]}"; do
++        build_rootfs "$dist"
++    done
++}
++
++# Simple test script
++test_build() {
++    local dist="$1"
++    local image="${OUTPUT_DIR}/discourse-${dist}.raw"
++    
++    log "Testing ${dist} build..."
++    
++    # Basic systemd-nspawn test
++    systemd-nspawn --image="${image}" \
++        --bind="${SCRIPT_DIR}/test:/test" \
++        /test/basic-test.sh
++}
++
++main() {
++    case "${1:-build}" in
++        "build")
++            build_all
++            ;;
++        "test")
++            shift
++            test_build "${1:-alpine}"
++            ;;
++        *)
++            echo "Usage: $0 {build|test [distribution]}"
++            exit 1
++            ;;
++    esac
++}
++
++main "$@"
++
++diff --git a/test/basic-test.sh b/test/basic-test.sh
+new file mode 100755
+index 0000000..2345678
+--- /dev/null
++++ b/test/basic-test.sh
+@@ -0,0 +1,20 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++# Basic system checks
++echo "Testing system configuration..."
++
++# Check if systemd is present
++systemctl --version
++
++# Check if discourse user exists
++id discourse
++
++# Check if basic directories exist
++for dir in /var/www/discourse /home/discourse /var/discourse; do
++    [ -d "$dir" ] || exit 1
++done
++
++# Check if configuration directory exists
++[ -d "/etc/discourse/discourse.conf.d" ] || exit 1
++
++echo "Basic test passed!"
++
++diff --git a/mkosi.debian.conf b/mkosi.debian.conf
+new file mode 100644
+index 0000000..3456789
+--- /dev/null
++++ b/mkosi.debian.conf
+@@ -0,0 +1,19 @@
++[Distribution]
++Release=bookworm
++
++[Content]
++Packages=
++    systemd
++    nginx
++    postgresql
++    redis
++    imagemagick
++    build-essential
++    git
++    sudo
++
++BuildPackages=
++    build-essential
++    pkg-config
++
++diff --git a/mkosi.ubuntu.conf b/mkosi.ubuntu.conf
+new file mode 100644
+index 0000000..4567890
+--- /dev/null
++++ b/mkosi.ubuntu.conf
+@@ -0,0 +1,19 @@
++[Distribution]
++Release=jammy
++
++[Content]
++Packages=
++    systemd
++    nginx
++    postgresql
++    redis
++    imagemagick
++    build-essential
++    git
++    sudo
++
++BuildPackages=
++    build-essential
++    pkg-config
++
++diff --git a/mkosi.arch.conf b/mkosi.arch.conf
+new file mode 100644
+index 0000000..5678901
+--- /dev/null
++++ b/mkosi.arch.conf
+@@ -0,0 +1,18 @@
++[Distribution]
++Release=latest
++
++[Content]
++Packages=
++    base
++    systemd
++    nginx
++    postgresql
++    redis
++    imagemagick
++    base-devel
++    git
++    sudo
++
++BuildPackages=
++    base-devel
++```
