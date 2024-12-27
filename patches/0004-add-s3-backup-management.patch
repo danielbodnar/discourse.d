@@ -1,0 +1,188 @@
+From: Daniel Bodnar <daniel.bodnar@fmr.com>
+Date: Tue, 17 Dec 2024 01:43:00 -0600
+Subject: [PATCH 0004/0008] Add S3 backup management
+Description: Implements S3 backup functionality using native Discourse features
+and adds automated backup scheduling.
+
+diff --git a/lib/00-config.sh b/lib/00-config.sh
+--- a/lib/00-config.sh
++++ b/lib/00-config.sh
+@@ -53,3 +53,14 @@ DISCOURSE_PERSISTENT_DIRS=(
+     "${DISCOURSE_DATA}/plugins"
+     "${DISCOURSE_DATA}/config"
+ )
++
++# Backup Configuration
++BACKUP_RETENTION_DAYS="30"
++BACKUP_SCHEDULE="0 2 * * *"  # 2 AM daily
++
++# S3 Configuration (override with environment variables)
++S3_BACKUP_BUCKET="${S3_BACKUP_BUCKET:-}"
++S3_BACKUP_PREFIX="${S3_BACKUP_PREFIX:-backups}"
++S3_REGION="${S3_REGION:-us-east-1}"
++S3_ENDPOINT="${S3_ENDPOINT:-}"  # Optional, for non-AWS S3
++S3_PATH_STYLE="${S3_PATH_STYLE:-false}"
++
+diff --git a/lib/backup-manager.sh b/lib/backup-manager.sh
+new file mode 100755
+index 0000000..0123456
+--- /dev/null
++++ b/lib/backup-manager.sh
+@@ -0,0 +1,108 @@
++#!/usr/bin/env bash
++
++setup_backup_system() {
++    log "Setting up backup system..."
++    
++    generate_backup_script
++    generate_backup_service
++    generate_backup_timer
++    configure_discourse_backups
++}
++
++generate_backup_script() {
++    cat > "${BASE_DIR}/rootfs/base/usr/lib/discourse/backup-manager" << 'EOF'
++#!/usr/bin/env bash
++set -euo pipefail
++
++# Source discourse environment
++source /usr/lib/discourse/discourse-env
++
++# Backup functions
++create_backup() {
++    log "Creating Discourse backup..."
++    cd "${DISCOURSE_ROOT}"
++    RAILS_ENV=production bundle exec rake backup:create
++}
++
++upload_to_s3() {
++    local backup_file="$1"
++    local s3_path="s3://${S3_BACKUP_BUCKET}/${S3_BACKUP_PREFIX}/$(basename "$backup_file")"
++    
++    # Configure AWS CLI if using custom endpoint
++    if [ -n "${S3_ENDPOINT}" ]; then
++        aws configure set default.s3.addressing_style path
++        export AWS_ENDPOINT_URL="${S3_ENDPOINT}"
++    fi
++    
++    log "Uploading backup to S3: ${s3_path}"
++    aws s3 cp "$backup_file" "$s3_path" \
++        --region "${S3_REGION}" \
++        --no-progress
++}
++
++cleanup_old_backups() {
++    log "Cleaning up old backups..."
++    
++    # Local cleanup
++    find "${DISCOURSE_DATA}/backups" -type f -mtime +${BACKUP_RETENTION_DAYS} -delete
++    
++    # S3 cleanup
++    aws s3 ls "s3://${S3_BACKUP_BUCKET}/${S3_BACKUP_PREFIX}/" \
++        --region "${S3_REGION}" \
++        | while read -r line; do
++        timestamp=$(echo "$line" | awk '{print $1" "$2}')
++        filename=$(echo "$line" | awk '{print $4}')
++        backup_date=$(date -d "$timestamp" +%s)
++        current_date=$(date +%s)
++        days_old=$(( (current_date - backup_date) / 86400 ))
++        
++        if [ "$days_old" -gt "${BACKUP_RETENTION_DAYS}" ]; then
++            aws s3 rm "s3://${S3_BACKUP_BUCKET}/${S3_BACKUP_PREFIX}/${filename}" \
++                --region "${S3_REGION}"
++        fi
++    done
++}
++
++main() {
++    create_backup
++    
++    # Find and upload the latest backup
++    latest_backup=$(find "${DISCOURSE_DATA}/backups" -type f -name "*.tar.gz" \
++        -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")
++    
++    if [ -n "$latest_backup" ]; then
++        upload_to_s3 "$latest_backup"
++    fi
++    
++    cleanup_old_backups
++}
++
++main "$@"
++EOF
++
++    chmod +x "${BASE_DIR}/rootfs/base/usr/lib/discourse/backup-manager"
++}
++
++generate_backup_service() {
++    cat > "${BASE_DIR}/rootfs/base/etc/systemd/system/discourse-backup.service" << EOF
++[Unit]
++Description=Discourse Backup Service
++After=discourse.service
++
++[Service]
++Type=oneshot
++User=${DISCOURSE_USER}
++Group=${DISCOURSE_GROUP}
++Environment=RAILS_ENV=production
++EnvironmentFile=/etc/discourse/backup-env
++ExecStart=/usr/lib/discourse/backup-manager
++
++# Security
++NoNewPrivileges=yes
++ProtectSystem=strict
++ReadOnlyPaths=/
++ReadWritePaths=${DISCOURSE_DATA}/backups
++EOF
++}
++
++generate_backup_timer() {
++    cat > "${BASE_DIR}/rootfs/base/etc/systemd/system/discourse-backup.timer" << EOF
++[Unit]
++Description=Discourse Backup Timer
++
++[Timer]
++OnCalendar=${BACKUP_SCHEDULE}
++Persistent=true
++
++[Install]
++WantedBy=timers.target
++EOF
++}
++
++configure_discourse_backups() {
++    # Create backup environment file template
++    cat > "${BASE_DIR}/rootfs/base/etc/discourse/backup-env.template" << EOF
++# S3 Backup Configuration
++S3_BACKUP_BUCKET=
++S3_BACKUP_PREFIX=backups
++S3_REGION=us-east-1
++#S3_ENDPOINT=
++#S3_PATH_STYLE=false
++
++# Backup Retention
++BACKUP_RETENTION_DAYS=30
++EOF
++
++    # Add backup configuration to discourse settings
++    cat >> "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}/config/discourse.conf" << EOF
++
++# Backup Settings
++backup_location = s3
++s3_backup_bucket = "\${S3_BACKUP_BUCKET}"
++s3_backup_prefix = "\${S3_BACKUP_PREFIX}"
++s3_region = "\${S3_REGION}"
++EOF
++}
++
++diff --git a/convert.sh b/convert.sh
+--- a/convert.sh
++++ b/convert.sh
+@@ -17,6 +17,7 @@ main() {
+     setup_volume_links
+     generate_volume_systemd_mount_units
+     generate_volume_tmpfiles
++    setup_backup_system
+     create_gitignore
+
+     success "Initial setup completed successfully!"

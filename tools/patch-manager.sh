@@ -41,8 +41,8 @@ apply_patch() {
     fi
     
     log "Applying patch: ${patch_file}"
-    if git apply --check "${full_path}" >/dev/null 2>&1; then
-        if git apply "${full_path}"; then
+    if git apply --check --verbose "${full_path}" >/dev/null 2>&1; then
+        if git apply --apply --verbose "${full_path}"; then
             echo "${patch_file}" >> "${PATCH_LOG}"
             success "Successfully applied: ${patch_file}"
         else
