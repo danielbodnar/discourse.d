@@ -1,3 +1,4 @@
+
 From: Daniel Bodnar <daniel.bodnar@fmr.com>
 Date: Tue, 17 Dec 2024 01:42:00 -0600
 Subject: [PATCH 0003/0008] Add Discourse paths and volume management
@@ -19,24 +20,24 @@ diff --git a/lib/00-config.sh b/lib/00-config.sh
 +
 +# Volume Configuration
 +DISCOURSE_VOLUMES=(
-+    "shared:/var/discourse/shared"
-+    "uploads:/var/discourse/uploads"
-+    "backups:/var/discourse/backups"
-+    "assets:/var/discourse/public/assets"
-+    "plugins:/var/discourse/plugins"
-+    "configs:/var/discourse/config"
-+)
-+
-+# Persistent directories that need specific permissions
+    "shared:/var/discourse/shared"
+    "uploads:/var/discourse/uploads"
+    "backups:/var/discourse/backups"
+    "assets:/var/discourse/public/assets"
+    "plugins:/var/discourse/plugins"
+    "configs:/var/discourse/config"
+)
+
+# Persistent directories that need specific permissions
 +DISCOURSE_PERSISTENT_DIRS=(
-+    "${DISCOURSE_DATA}/shared"
-+    "${DISCOURSE_DATA}/uploads"
-+    "${DISCOURSE_DATA}/backups"
-+    "${DISCOURSE_DATA}/public/assets"
-+    "${DISCOURSE_DATA}/plugins"
-+    "${DISCOURSE_DATA}/config"
-+)
-+
+    "${DISCOURSE_DATA}/shared"
+    "${DISCOURSE_DATA}/uploads"
+    "${DISCOURSE_DATA}/backups"
+    "${DISCOURSE_DATA}/public/assets"
+    "${DISCOURSE_DATA}/plugins"
+    "${DISCOURSE_DATA}/config"
+)
+
 diff --git a/lib/02-structure.sh b/lib/02-structure.sh
 --- a/lib/02-structure.sh
 +++ b/lib/02-structure.sh
@@ -49,124 +50,79 @@ diff --git a/lib/02-structure.sh b/lib/02-structure.sh
 +    mkdir -p "${BASE_DIR}/rootfs/base/etc"/{systemd,nginx}
 +    mkdir -p "${BASE_DIR}/rootfs/base/var"/{log,run}/discourse
 
-     # Create distribution-specific directories
-     for dist in "${DISTRIBUTIONS[@]}"; do
-@@ -23,16 +23,44 @@ create_directory_structure() {
-     # Create overlay directories
-     mkdir -p "${BASE_DIR}/rootfs/overlay"/{etc,var}
+     # Create Discourse specific directories
+     mkdir -p "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}"
+     mkdir -p "${BASE_DIR}/rootfs/base${DISCOURSE_HOME}"
+     mkdir -p "${BASE_DIR}/rootfs/base${DISCOURSE_DATA}"
 
-+    # Create Discourse specific directories
-+    mkdir -p "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}"
-+    mkdir -p "${BASE_DIR}/rootfs/base${DISCOURSE_HOME}"
-+    mkdir -p "${BASE_DIR}/rootfs/base${DISCOURSE_DATA}"
-+    
-     # Create build directories
-     mkdir -p "${BASE_DIR}/build"/{gems,assets,plugins}
+     # Create volume mount points
+     for volume in "${DISCOURSE_VOLUMES[@]}"; do
+         IFS=':' read -r name path <<< "$volume"
+         mkdir -p "${BASE_DIR}/rootfs/base${path}"
+     done
 
-+    # Create volume mount points
-+    for volume in "${DISCOURSE_VOLUMES[@]}"; do
-+        IFS=':' read -r name path <<< "$volume"
-+        mkdir -p "${BASE_DIR}/rootfs/base${path}"
-+    done
-+    
-     # Set up correct permissions
+     # Set permissions
      chown -R root:root "${BASE_DIR}/rootfs"
      chmod 755 "${BASE_DIR}/rootfs"
 
--    # Set up discourse directories with correct permissions
-+    # Set up Discourse user home
-+    chown -R "${DISCOURSE_UID}:${DISCOURSE_GID}" \
-+        "${BASE_DIR}/rootfs/base${DISCOURSE_HOME}"
-+    
-+    # Set up Discourse application directory
-     chown -R "${DISCOURSE_UID}:${DISCOURSE_GID}" \
--        "${BASE_DIR}/rootfs/base/var"/{lib,log,run}/discourse
-+        "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}"
-+    
-+    # Set up volume directories with correct permissions
-+    for dir in "${DISCOURSE_PERSISTENT_DIRS[@]}"; do
-+        chown "${DISCOURSE_UID}:${DISCOURSE_GID}" \
-+            "${BASE_DIR}/rootfs/base${dir}"
-+        chmod 755 "${BASE_DIR}/rootfs/base${dir}"
-+    done
-+    
-+    success "Directory structure created"
-+}
-+
-+setup_volume_links() {
-+    log "Setting up volume symlinks..."
-+    
-+    # Create symlinks for persistent storage
-+    ln -sf "${DISCOURSE_DATA}/config/discourse.conf" \
-+        "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}/config/discourse.conf"
-+    ln -sf "${DISCOURSE_DATA}/public/assets" \
-+        "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}/public/assets"
-+    ln -sf "${DISCOURSE_DATA}/uploads" \
-+        "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}/public/uploads"
-+    ln -sf "${DISCOURSE_DATA}/plugins" \
-+        "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}/plugins"
-+    
-+    success "Volume symlinks created"
-+}
-+
-+generate_volume_systemd_mount_units() {
-+    log "Generating SystemD mount units for volumes..."
-+    
-+    for volume in "${DISCOURSE_VOLUMES[@]}"; do
-+        IFS=':' read -r name path <<< "$volume"
-+        cat > "${BASE_DIR}/rootfs/base/etc/systemd/system/discourse-${name}.mount" << EOF
-+[Unit]
-+Description=Discourse ${name} Volume
-+Before=discourse.service
-+
-+[Mount]
-+What=/var/discourse/${name}
-+Where=${path}
-+Type=none
-+Options=bind
-+
-+[Install]
-+WantedBy=discourse.service
-+EOF
-+    done
-+    
-+    success "SystemD mount units generated"
-+}
-+
-+generate_volume_tmpfiles() {
-+    log "Generating tmpfiles configuration..."
-+    
-+    cat > "${BASE_DIR}/rootfs/base/usr/lib/tmpfiles.d/discourse.conf" << EOF
-+# Discourse persistent directories
-+d ${DISCOURSE_DATA} 0755 ${DISCOURSE_USER} ${DISCOURSE_GROUP} -
-+$(for dir in "${DISCOURSE_PERSISTENT_DIRS[@]}"; do
-+    echo "d ${dir} 0755 ${DISCOURSE_USER} ${DISCOURSE_GROUP} -"
-+done)
-+EOF
+     # Set up Discourse directories
+     chown -R "${DISCOURSE_UID}:${DISCOURSE_GID}" "${BASE_DIR}/rootfs/base${DISCOURSE_HOME}"
+     chown -R "${DISCOURSE_UID}:${DISCOURSE_GID}" "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}"
 
-     success "Directory structure created"
- }
-@@ -46,6 +74,9 @@ create_gitignore() {
- # System files
- .DS_Store
- *.swp
- *~
-+
-+# Volume data
-+/volumes/
- EOF
- }
+     # Set up volume directories
+     for dir in "${DISCOURSE_PERSISTENT_DIRS[@]}"; do
+         chown "${DISCOURSE_UID}:${DISCOURSE_GID}" "${BASE_DIR}/rootfs/base${dir}"
+         chmod 755 "${BASE_DIR}/rootfs/base${dir}"
+     done
+}
+
+# Configure volume management
+setup_volume_links() {
+    ln -sf "${DISCOURSE_DATA}/config/discourse.conf" "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}/config/discourse.conf"
+    ln -sf "${DISCOURSE_DATA}/public/assets" "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}/public/assets"
+    ln -sf "${DISCOURSE_DATA}/uploads" "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}/public/uploads"
+    ln -sf "${DISCOURSE_DATA}/plugins" "${BASE_DIR}/rootfs/base${DISCOURSE_ROOT}/plugins"
+}
+
+# Generate systemd mount units
+generate_volume_systemd_mount_units() {
+    for volume in "${DISCOURSE_VOLUMES[@]}"; do
+        IFS=':' read -r name path <<< "$volume"
+        cat > "${BASE_DIR}/rootfs/base/etc/systemd/system/discourse-${name}.mount" << EOF
+[Unit]
+Description=Discourse ${name} Volume
+Before=discourse.service
+
+[Mount]
+What=/var/discourse/${name}
+Where=${path}
+Type=none
+Options=bind
+
+[Install]
+WantedBy=discourse.service
+EOF
+    done
+}
+
+generate_volume_tmpfiles() {
+    cat > "${BASE_DIR}/rootfs/base/usr/lib/tmpfiles.d/discourse.conf" << EOF
+# Discourse persistent directories
+d ${DISCOURSE_DATA} 0755 ${DISCOURSE_USER} ${DISCOURSE_GROUP} -
+$(for dir in "${DISCOURSE_PERSISTENT_DIRS[@]}"; do
+    echo "d ${dir} 0755 ${DISCOURSE_USER} ${DISCOURSE_GROUP} -"
+done)
+EOF
+}
 
 diff --git a/convert.sh b/convert.sh
 --- a/convert.sh
 +++ b/convert.sh
 @@ -14,6 +14,9 @@ main() {
-
      validate_environment
      create_directory_structure
 +    setup_volume_links
 +    generate_volume_systemd_mount_units
 +    generate_volume_tmpfiles
-     create_gitignore
-
      success "Initial setup completed successfully!"
+ }
