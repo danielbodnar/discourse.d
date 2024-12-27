@@ -1,0 +1,7 @@
+modules = ["bash", "docker", "replit-rtld-loader"]
+run = "ls"
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "ls"]
