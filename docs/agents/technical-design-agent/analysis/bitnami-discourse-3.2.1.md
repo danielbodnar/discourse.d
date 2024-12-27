@@ -307,3 +307,6 @@ libxml2
 libxslt
 postgresql-libs
 ```
+
+
+## Bitnami Scripts
