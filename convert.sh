@@ -16,7 +16,6 @@ main() {
     setup_volume_links
     generate_volume_systemd_mount_units
     generate_volume_tmpfiles
-
     success "Initial setup completed successfully!"
 }
 
