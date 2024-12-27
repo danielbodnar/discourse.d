@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 
 # Load base configuration
