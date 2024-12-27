@@ -1,3 +1,4 @@
+# PROMPT 
 You are an AI assistant tasked with creating a comprehensive technical design document based on the analysis of provided sources and a template. Follow these instructions carefully:
 
 1. You will be provided with three inputs:
@@ -67,6 +68,8 @@ You are an AI assistant tasked with creating a comprehensive technical design do
    d. Include any separate schema files or bash script files within their own tagged sections (e.g., <schema_file filename="config_schema.ts">) after the main document.
 
 Remember to focus on creating a comprehensive and detailed technical design document that addresses all aspects of the user's instructions and provides a clear roadmap for implementation.
+
+## Assistant 
 I'll help analyze these sources and create a technical design document. Before proceeding, I have a few clarifying questions to ensure I provide the most accurate and useful output:
 
 1. Regarding the Alpine migration:
@@ -95,14 +98,19 @@ I'll help analyze these sources and create a technical design document. Before p
    - Do you want to include support for backup/restore operations?
 
 Once you provide these details, I can create a more targeted and useful technical design document that meets your specific needs.
+
+## User
 Excellent questions. Here's a conversation log from another chat thread which contains answers to all of your questions and many more. Please analyze it and extract any relevant information to use in your design document. However, I don't want to use systemd or mkosi here - I just want the rootfs, all variables and config values, and for everything to be build from scratch in an alpine image.
 
 <message_log>
 {{CHAT_CONVERSATION_HISTORY}}
 </message_log>
+
+## Assistant
 Based on the conversation log, I'll create a technical design document for migrating Discourse from Bitnami to Alpine 3.19, focusing on Docker/container aspects rather than SystemD. Let me proceed with the document:
 
 <technical_design_document>
+```markdown
 # Discourse Alpine Migration Technical Design Document
 
 ## 1. Introduction
@@ -473,7 +481,10 @@ main() {
 main "$@"
 ```
 </script_file>
+
+## User
 Thanks! Can you update this template to work with everything above, and add any missing steps, stages, packages, dependencies, or configuration variables and implementation details found in discourse/discourse, and bitnami/discourse:v3.2.1: 
+
 
 ```bash
 #!/usr/bin/env bash
@@ -526,13 +537,32 @@ ENV DISCOURSE_VERSION=${DISCOURSE_VERSION:-3.2.1} \\
     RUBY_VERSION=${RUBY_VERSION:-3.2.2} \\
     NODE_VERSION=${NODE_VERSION:-18.18.0} \\
     YARN_VERSION=${YARN_VERSION:-1.22.19} \\
-    BUNDLER_VERSION=${BUNDLER_VERSION:-2.4.22} \\
-    DISCOURSE_USER=${DISCOURSE_USER:-discourse} \\
+    BUNDLER_VERSION=${BUNDLER_VERSION:-2.4.22}
+
+
+ENV DISCOURSE_USER=${DISCOURSE_USER:-discourse} \\
     DISCOURSE_GROUP=${DISCOURSE_GROUP:-discourse} \\
     DISCOURSE_HOME=${DISCOURSE_HOME:-/home/discourse} \\
     DISCOURSE_ROOT=${DISCOURSE_ROOT:-/var/www/discourse} \\
-    DISCOURSE_DATA=${DISCOURSE_DATA:-/var/discourse} \\
-    RAILS_ENV=production
+    DISCOURSE_DATA=${DISCOURSE_DATA:-/var/discourse}
+
+ENV RAILS_ENV=${RAILS_ENV:-production} \\
+    RUBY_MALLOC_ARENA_MAX=2 \\
+    RUBY_GC_HEAP_GROWTH_MAX_SLOTS=40000 \\
+    RUBY_GC_HEAP_INIT_SLOTS=400000 \\
+    RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR=1.5 \\
+    RUBY_GC_MALLOC_LIMIT=90000000 \\
+    RUBY_GC_OLDMALLOC_LIMIT=90000000 \\
+    RUBY_GC_MALLOC_LIMIT_MAX=200000000 \\
+    RUBY_GC_OLDMALLOC_LIMIT_MAX=200000000 \\
+    RUBY_GC_MALLOC_LIMIT_GROWTH_FACTOR=1.1 \\
+    RUBY_GC_OLDMALLOC_LIMIT_GROWTH_FACTOR=1.1 \\
+    RUBY_GC_HEAP_FREE_SLOTS_MIN_RATIO=0.05 \\
+    RUBY_GC_HEAP_FREE_SLOTS_MAX_RATIO=0.65
+
+
+ENV PATH=/usr/local/rbenv/shims:/usr/local/rbenv/bin:$PATH
+
 
 # Step 0003 - system packages
 RUN ${PKG_INSTALL_CMD} \\
@@ -688,7 +718,7 @@ main() {
 main "$@"
 ```
 
-
+## Assistant
 I'll help update the template with additional details from both discourse/discourse and bitnami/discourse:v3.2.1. Here are the key changes needed:
 
 1. Additional environment variables and dependencies

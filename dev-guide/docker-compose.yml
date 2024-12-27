@@ -1,0 +1,28 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        USERNAME: ${USER:-dev}
+        USER_UID: ${UID:-1000}
+        USER_GID: ${GID:-1000}
+    image: discourse-conversion-dev
+    container_name: discourse-conversion-dev
+    volumes:
+      - .:/workspace
+      - build-cache:/workspace/build
+      - output-cache:/workspace/output
+    environment:
+      - DISCOURSE_VERSION=${DISCOURSE_VERSION:-3.2.1}
+      - RUBY_VERSION=${RUBY_VERSION:-3.2.2}
+      - NODE_VERSION=${NODE_VERSION:-18.18.0}
+    privileged: true  # Required for systemd-nspawn
+    command: bash
+
+volumes:
+  build-cache:
+  output-cache:
