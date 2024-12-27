@@ -8,7 +8,7 @@ BASE_DIR="$(pwd)/${PROJECT_NAME}-conversion"
 # Distribution Configuration
 DISTRIBUTIONS=(
     "alpine"
-    "arch" 
+    "arch"
     "debian"
     "ubuntu"
 )
