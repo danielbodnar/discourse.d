@@ -707,3 +707,56 @@ main "$@"
 #     -t bitnami-discourse-3.2.1 \
 #     -o ./.out \
 #     -v -d -c -p
+
+
+
+
+# This creates a structure like:
+
+# ```plaintext
+# output/
+# ├── build_steps/
+# │   ├── 001-env.sh
+# │   ├── 002-run.sh
+# │   ├── 003-workdir.sh
+# │   └── ...
+# ├── copy_steps/
+# │   ├── 001-copy.sh
+# │   ├── 002-copy.sh
+# │   └── ...
+# ├── build_order.txt
+# └── build.sh
+# ```
+
+# Each script:
+# 1. Is independently executable
+# 2. Has proper error handling
+# 3. Includes creation timestamp and original command
+# 4. Can be run without Docker
+# 5. Maintains the original build order
+
+# Example output script:
+
+# ```bash
+# # build_steps/001-run.sh
+# #!/bin/bash
+# # Generated from RUN command
+# # Created: 2024-05-13T21:41:51.462871039Z
+# set -euo pipefail
+
+# # Execute command
+# install_packages acl advancecomp ca-certificates curl file gifsicle git \
+#     hostname imagemagick jhead jpegoptim libbrotli1 libbsd0 libbz2-1.0
+# ```
+
+# You can then run the entire build process with:
+
+# ```bash
+# ./output/build.sh
+# ```
+
+# Or individual steps:
+
+# ```bash
+# ./output/build_steps/001-run.sh
+# ```

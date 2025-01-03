@@ -1,3 +1,10 @@
+---
+title: Managing System Patches and Tools
+description: Comprehensive guide for utility scripts and patch management tools,
+  including initialization, application, and tracking of system patches
+keywords: patch-management, system-utilities, bash-scripts, automation, version-control
+
+---
 # Tools Directory
 
 Contains utility scripts and tools for managing the Discourse conversion process.
