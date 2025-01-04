@@ -3,41 +3,15 @@
 
 ## Prompt
 
-You are tasked with creating a Bun shell script that will generate a Dockerfile or OCI rootfs directory based on user input and configuration values. This script should be highly configurable and generic, capable of handling various aspects of container configuration.
 
-First, analyze the following existing Dockerfile or container information:
+You are tasked with creating a Bun shell CLI script that will generate a Dockerfile or OCI rootfs directory based on user input and configuration values. This script should be highly configurable and generic, capable of handling various aspects of container configuration.
 
-<existing_dockerfile_or_container>
-{{EXISTING_DOCKERFILE_OR_CONTAINER}}
-</existing_dockerfile_or_container>
+This script will be called `containerfile.gen.ts`, and will be executed like this: `bunx create containerfile "ghcr.io/bitnami/discourse:3.2.2" > discourse/bitnami.Dockerfile`.
 
-Next, review the configuration values specified by the user:
-
-<user_config>
-{{USER_CONFIG}}
-</user_config>
+If the user doesn't specify a docker image, docker container, or Dockerfile as the first argument, this script should load the config `containerfile.gen.config.ts` and prompt the user explicitly before proceeding (further instructions on how to do that can be found further below). 
 
 
-Third, review the tech stack requirements:
-<teckstack>
-{{TECHSTACK}}
-</techstack>
-
-Fourth, familiarize yourself with the following knowledge prerequisites:
-
-<knowledge_requirements>
-{{KNOWLEDGE_REQUIREMENTS}}
-</knowledge_requirements>
-
-
-Finally, review the user's custom instructions:
-
-<instructions>
-{{INSTRUCTIONS}}
-</instructions>
-
-
-Your task is to create a Bun shell script that will prompt the user for variables and configuration values and use those to generate a Dockerfile or OCI rootfs directory.
+Your task is to create this dynamic CLI using Bun shell, unjs/c12, defu, citty, consola, and Zod. This CLI will prompt the user for variables and configuration values and use those to generate a Dockerfile or OCI rootfs directory.
 
 The bun shell guide is here : https://bun.sh/docs/runtime/shell
 
@@ -64,19 +38,18 @@ The following steps will need to be configured:
 Everything should be configurable and generic.
 
 Use bun as the node js runtime, package manager, and bash shell environment.
-Use citty, consola, magicast, and c12 to prompt the user for configuration values, then save them to "./docker.config.ts" with c12 and magicast. Use Zod and zod-to-json-schema to create a zod-object per configuration section above. Use Consola to prompt the user for values, and those Zod schemas to determine defaults, prompt types (multi select, string, int, etc), and zod's ".describe()" key to determine the text to display to the user while promoting them for a configuration value.
 
-The very this script should do is prompt the user for a docker image or a docker container or a Dockerfile and then attempt to extract and infer as many of these values from the container image, Dockerfile, or docker container.
-
-This CLI should also provide an option for using ollama.js,  llamaindexts, or '@anthropic-ai/sdk' and 'claude3-5-sonnet-latest' to generate the actual Dockerfile by using the Zod schemas as a tool calling input schema.
-
-Use archlinux as a default container example.
+Use citty, consola, and c12, unjs/defu to prompt the user for configuration values, then save them to "./docker.config.ts" with c12 and magicast. Use Zod and zod-to-json-schema to create a zod-object per configuration section above. Use Consola to prompt the user for values, and those Zod schemas to determine defaults, prompt types (multi select, string, int, etc), and zod's ".describe()" key to determine the text to display to the user while promoting them for a configuration value.
 
 
-Now, follow these steps to create the Bun shell script:
+This CLI should also provide an option for using ollama.js, with llamaindexts or langgraphjs (or '@anthropic-ai/sdk' and 'claude3-5-sonnet-latest') to generate the actual Dockerfile by using the Zod schemas as a tool calling input schema, and pass the existing configuration values to Claude's API.
+
+Use `bitnami/discourse:3.2.2` as an example container to get started.
+
+
 
 1. Set up the Bun shell script environment:
-   - Create a new file named `dockerfile-generator.ts`
+   - Create a new file named `create-containerfile.ts`
    - At the top of the file, add the shebang line: `#!/usr/bin/env bun`
 
 2. Import and configure the necessary libraries:
@@ -85,11 +58,8 @@ Now, follow these steps to create the Bun shell script:
    import { consola } from 'consola';
    import { z } from 'zod';
    import { zodToJsonSchema } from 'zod-to-json-schema';
-   import { defineConfig } from 'c12';
-   import { createMagicGetter, createMagicSetter } from 'magicast';
-   import { Ollama } from 'ollama';
-   import { Document } from 'llamaindex';
-   import { AnthropicClient } from '@anthropic-ai/sdk';
+   import { loadConfig } from 'c12';
+   // [...add any other relevant libraries here]
    ```
 
 3. Create Zod schemas for each configuration section:
@@ -106,7 +76,7 @@ Now, follow these steps to create the Bun shell script:
    ```
 
 4. Extract and infer values from the existing Dockerfile or container:
-   - Implement a function to parse the existing_dockerfile_or_container input
+   - Implement a function to parse the Dockerfile, docker image, or running container from the cli args / configuration values / user input.
    - Extract relevant information for each configuration section
    - Store the extracted values in an object for later use
 
@@ -127,7 +97,7 @@ Now, follow these steps to create the Bun shell script:
    // Prompt for all other configuration sections
    ```
 
-6. Save the configuration to docker.config.ts using c12 and magicast:
+6. Save the configuration to containerfile.config.ts using c12 and magicast:
    ```typescript
    const config = {
      containerRegistry: containerRegistryConfig,
@@ -136,12 +106,12 @@ Now, follow these steps to create the Bun shell script:
    };
 
    await defineConfig({
-     name: 'docker',
+     name: 'containerfile,
      defaults: config,
      layers: [
        {
-         config: createMagicSetter(config),
-         configFile: file('./docker.config.ts'),
+         //config: ...,
+         //configFile: file('./docker.config.ts'),
        },
      ],
    });
@@ -205,8 +175,6 @@ Now, follow these steps to create the Bun shell script:
    ```
 
 Ensure that your script handles errors gracefully and provides clear feedback to the user throughout the process. The final output should be a generated Dockerfile based on the user's configuration choices, with an option to use AI assistance for generation.
-
-
 
 --------------
 
