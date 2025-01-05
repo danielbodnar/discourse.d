@@ -99,12 +99,12 @@ RUN groupadd -r \${DISCOURSE_GROUP} && \\
 
 # Step 0005 - ruby setup
 # TODO: implementation of setup-ruby script
-COPY rootfs/base/usr/lib/setup-ruby /usr/lib/setup-ruby
+COPY ./lib/setup-ruby /usr/lib/setup-ruby
 RUN /usr/lib/setup-ruby
 
 # Step 0006 - node.js setup
 # TODO: implementation of setup-node script
-COPY rootfs/base/usr/lib/setup-node /usr/lib/setup-node
+COPY ./lib/setup-node /usr/lib/setup-node
 RUN /usr/lib/setup-node
 
 # Step 0007 - discourse download
@@ -117,7 +117,7 @@ RUN bundle install --deployment --without development test && \\
 
 # Step 0009 - discourse plugins
 # TODO: implementation of install-plugins script
-COPY rootfs/base/usr/lib/install-plugins /usr/lib/install-plugins
+COPY ./lib/install-plugins /usr/lib/install-plugins
 RUN /usr/lib/install-plugins
 
 # Step 0010 - asset compilation
@@ -125,17 +125,17 @@ RUN RAILS_ENV=production bundle exec rake assets:precompile
 
 # Step 0011 - nginx configuration
 # TODO: implementation of nginx configuration
-COPY rootfs/base/etc/nginx/conf.d/discourse.conf /etc/nginx/conf.d/discourse.conf
+COPY ./etc/nginx/conf.d/discourse.conf /etc/nginx/conf.d/discourse.conf
 
 # Step 0012 - discourse configuration
 # TODO: implementation of discourse configuration
-COPY rootfs/base/etc/discourse/discourse.conf /etc/discourse/discourse.conf
-COPY rootfs/base/etc/discourse/discourse.conf.d /etc/discourse/discourse.conf.d/
+COPY ./etc/discourse/discourse.conf /etc/discourse/discourse.conf
+COPY ./etc/discourse/discourse.conf.d /etc/discourse/discourse.conf.d/
 
 # Step 0013 - initialization scripts
 # TODO: implementation of initialization scripts
-COPY rootfs/base/usr/lib/discourse/discourse-init /usr/lib/discourse/discourse-init
-COPY rootfs/base/usr/lib/discourse/discourse-env /usr/lib/discourse/discourse-env
+COPY ./lib/discourse/discourse-init /usr/lib/discourse/discourse-init
+COPY ./lib/discourse/discourse-env /usr/lib/discourse/discourse-env
 RUN chmod +x /usr/lib/discourse/discourse-*
 
 # Step 0014 - volume setup
@@ -150,12 +150,12 @@ RUN mkdir -p \\
 
 # Step 0015 - backup management
 # TODO: implementation of backup manager
-COPY rootfs/base/usr/lib/discourse/backup-manager /usr/lib/discourse/backup-manager
+COPY ./lib/discourse/backup-manager /usr/lib/discourse/backup-manager
 RUN chmod +x /usr/lib/discourse/backup-manager
 
 # Step 0016 - health check
 # TODO: implementation of health check script
-COPY rootfs/base/usr/lib/discourse/health-check /usr/lib/discourse/health-check
+COPY ./lib/discourse/health-check /usr/lib/discourse/health-check
 RUN chmod +x /usr/lib/discourse/health-check
 
 # Final image
