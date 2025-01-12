@@ -5,3 +5,6 @@
 [submodule "packages/discourse_docker"]
 	path = packages/discourse_docker
 	url = https://github.com/discourse/discourse_docker
+[submodule "packages/hello-melange-apko"]
+	path = packages/hello-melange-apko
+	url = https://github.com/chainguard-dev/hello-melange-apko.git
