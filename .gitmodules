@@ -8,3 +8,9 @@
 [submodule "packages/hello-melange-apko"]
 	path = packages/hello-melange-apko
 	url = https://github.com/chainguard-dev/hello-melange-apko.git
+[submodule "packages/melange"]
+	path = packages/melange
+	url = https://github.com/chainguard-dev/melange
+[submodule "packages/bitnami/containers"]
+	path = packages/bitnami/containers
+	url = https://github.com/bitnami/containers

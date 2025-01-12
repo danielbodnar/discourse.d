@@ -42,7 +42,7 @@ pipeline:
       mkdir -p "${INSTALL_DIR}"
 
       # Clone Discourse
-      git clone --branch v3.1.0 https://github.com/discourse/discourse.git "${INSTALL_DIR}"
+      git clone --branch 3.2.1 https://github.com/discourse/discourse.git "${INSTALL_DIR}"
       cd "${INSTALL_DIR}"
 
       # Install dependencies

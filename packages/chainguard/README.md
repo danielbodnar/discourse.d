@@ -1,5 +1,7 @@
 # Discourse Container Build
 
+[guide](https://www.chainguard.dev/unchained/secure-your-software-factory-with-melange-and-apko)
+
 Project structure:
 ```
 discourse-container/
