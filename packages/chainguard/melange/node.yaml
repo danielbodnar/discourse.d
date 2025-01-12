@@ -1,0 +1,39 @@
+package:
+  name: nodejs
+  version: 18.19.0
+  epoch: 0
+  description: "Node.js JavaScript runtime"
+  target-architecture:
+    - all
+  dependencies:
+    runtime:
+      - busybox
+      - ca-certificates
+      - libgcc
+      - libstdc++
+
+environment:
+  contents:
+    packages:
+      - alpine-base
+      - build-base
+      - python3
+      - linux-headers
+
+pipeline:
+  - uses: fetch
+    with:
+      uri: https://nodejs.org/dist/v18.19.0/node-v18.19.0.tar.xz
+      expected-sha256: 6127d71df1f9add9a5a47223966d4edca7b0ef5f78c05bd604e465b021e3ee3c
+  - uses: autoconf/configure
+    with:
+      opts:
+        - --prefix=/usr
+        - --shared-zlib
+        - --with-intl=system-icu
+  - uses: autoconf/make
+    with:
+      opts:
+        - -j$(nproc)
+  - uses: autoconf/make-install
+  - uses: strip

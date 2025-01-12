@@ -1,0 +1,66 @@
+contents:
+  keyring:
+    - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+  repositories:
+    - https://dl-cdn.alpinelinux.org/alpine/edge/main
+    - https://dl-cdn.alpinelinux.org/alpine/edge/community
+    - /work/packages
+  packages:
+    - alpine-baselayout
+    - discourse
+    - ruby-3.2
+    - nodejs
+    - postgresql15-client
+    - nginx
+    - redis
+    - imagemagick
+    - tzdata
+    - bash
+    - ca-certificates
+    - libxml2
+    - libxslt
+    - shared-mime-info
+
+paths:
+  - path: /var/lib/discourse
+    type: directory
+    uid: 2000
+    gid: 2000
+    permissions: 0755
+  - path: /var/log/discourse
+    type: directory
+    uid: 2000
+    gid: 2000
+    permissions: 0755
+  - path: /var/tmp/discourse
+    type: directory
+    uid: 2000
+    gid: 2000
+    permissions: 0755
+
+accounts:
+  groups:
+    - groupname: discourse
+      gid: 2000
+  users:
+    - username: discourse
+      uid: 2000
+      gid: 2000
+
+environment:
+  - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  - RAILS_ENV=production
+  - DISCOURSE_HOSTNAME=localhost
+  - DISCOURSE_DB_HOST=postgres
+  - DISCOURSE_REDIS_HOST=redis
+  - DISCOURSE_DEVELOPER_EMAILS=me@example.com
+  - DISCOURSE_SMTP_ADDRESS=smtp.example.com
+  - DISCOURSE_SERVE_STATIC_ASSETS=true
+  - RUBY_GLOBAL_METHOD_CACHE_SIZE=131072
+
+work-dir: /usr/share/discourse
+
+entrypoint:
+  command: /usr/local/bin/discourse-entrypoint
+
+cmd: bundle exec rails server -b 0.0.0.0 -p 3000

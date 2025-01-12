@@ -1,0 +1,64 @@
+package:
+  name: ruby-3.2
+  version: 3.2.2
+  epoch: 0
+  description: "Ruby programming language"
+  target-architecture:
+    - all
+  copyright:
+    - paths:
+      - "*"
+      attestation: |
+        Copyright 1993-2023 Yukihiro Matsumoto
+      license: Ruby
+  dependencies:
+    runtime:
+      - busybox
+      - ca-certificates
+      - gmp
+      - libffi
+      - libgcc
+      - libstdc++
+      - openssl
+      - readline
+      - zlib
+      - yaml
+      - gdbm
+      - ncurses
+
+environment:
+  contents:
+    packages:
+      - alpine-base
+      - build-base
+      - linux-headers
+      - openssl-dev
+      - readline-dev
+      - zlib-dev
+      - gmp-dev
+      - libffi-dev
+      - yaml-dev
+      - gdbm-dev
+      - ncurses-dev
+
+pipeline:
+  - uses: fetch
+    with:
+      uri: https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.2.tar.gz
+      expected-sha256: 96c57558871a6748de5bc9f274e93f4b5aad06cd8f37befa0e8d94e7b8a423bc
+  - uses: autoconf/configure
+    with:
+      opts:
+        - --prefix=/usr
+        - --sysconfdir=/etc
+        - --enable-shared
+        - --with-openssl
+        - --with-readline
+        - --with-zlib
+        - --with-gmp
+  - uses: autoconf/make
+    with:
+      opts:
+        - -j$(nproc)
+  - uses: autoconf/make-install
+  - uses: strip

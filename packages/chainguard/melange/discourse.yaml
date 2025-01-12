@@ -1,0 +1,64 @@
+package:
+  name: discourse
+  version: 3.1.0
+  epoch: 0
+  description: "Discourse - Open source discussion platform"
+  target-architecture:
+    - all
+  dependencies:
+    runtime:
+      - ruby-3.2
+      - nodejs
+      - postgresql15-client
+      - imagemagick
+      - nginx
+      - redis
+      - git
+      - bash
+      - yaml
+      - shared-mime-info
+      - tzdata
+      - libxml2
+      - libxslt
+
+environment:
+  contents:
+    packages:
+      - alpine-base
+      - build-base
+      - ruby-3.2-dev
+      - postgresql15-dev
+      - imagemagick-dev
+      - libxml2-dev
+      - libxslt-dev
+      - git
+      - yarn
+      - ruby-bundler
+
+pipeline:
+  - name: Setup Discourse
+    runs: |
+      INSTALL_DIR="${{targets.destdir}}/usr/share/discourse"
+      mkdir -p "${INSTALL_DIR}"
+
+      # Clone Discourse
+      git clone --branch v3.1.0 https://github.com/discourse/discourse.git "${INSTALL_DIR}"
+      cd "${INSTALL_DIR}"
+
+      # Install dependencies
+      bundle config set --local deployment true
+      bundle config set --local without 'development test'
+      bundle install --jobs $(nproc)
+
+      # Install JavaScript dependencies
+      yarn install --production
+
+      # Precompile assets
+      RAILS_ENV=production bundle exec rake assets:precompile
+
+      # Clean up development files
+      rm -rf node_modules tmp/cache spec script/docker test
+
+      # Install configuration files
+      install -Dm644 /melange/configs/discourse.conf /etc/discourse/discourse.conf
+      install -Dm755 /melange/configs/entrypoint.sh /usr/local/bin/discourse-entrypoint

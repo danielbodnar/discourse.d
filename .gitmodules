@@ -1,0 +1,7 @@
+[submodule "packages/discourse-src"]
+	path = packages/discourse-src
+	url = https://github.com/discourse/discourse
+	branch = v3.2.1
+[submodule "packages/discourse_docker"]
+	path = packages/discourse_docker
+	url = https://github.com/discourse/discourse_docker
